@@ -7,15 +7,17 @@ var getUserRepos = function (user) {
   //format the github api url
   var apiUrl = "https://api.github.com/users/" + user + "/repos";
 
+  //make a get request to url
   fetch(apiUrl)
     .then(function (response) {
       // request was successful
       if (response.ok) {
+        console.log(response);
         response.json().then(function (data) {
           displayRepos(data, user);
         });
       } else {
-        alert('Error: GitHub User Not Found');
+        alert("Error: " + response.statusText);
       }
     })
     .catch(function (error) {
@@ -25,21 +27,22 @@ var getUserRepos = function (user) {
 };
 
 var formSubmitHandler = function (event) {
+  // prevent page from refreshing
   event.preventDefault();
+
   // get value from input element
   var username = nameInputEl.value.trim();
 
   if (username) {
     getUserRepos(username);
+
+    // clear old content
+    repoContainerEl.textContent = "";
     nameInputEl.value = "";
   } else {
     alert("Please enter a GitHub username");
   }
-  console.log(event);
 };
-
-userFormEl.addEventListener("submit", formSubmitHandler);
-
 
 var displayRepos = function (repos, searchTerm) {
   // check if api returned any repos
@@ -47,9 +50,9 @@ var displayRepos = function (repos, searchTerm) {
     repoContainerEl.textContent = "No repositories found.";
     return;
   }
-  // clear old content
-  repoContainerEl.textContent = "";
+
   repoSearchTerm.textContent = searchTerm;
+
   // loop over repos
   for (var i = 0; i < repos.length; i++) {
     // format repo name
@@ -66,6 +69,7 @@ var displayRepos = function (repos, searchTerm) {
 
     // append to container
     repoEl.appendChild(titleEl);
+
     // create a status element
     var statusEl = document.createElement("span");
     statusEl.classList = "flex-row align-center";
@@ -80,14 +84,26 @@ var displayRepos = function (repos, searchTerm) {
 
     // append to container
     repoEl.appendChild(statusEl);
+
     // append container to the dom
     repoContainerEl.appendChild(repoEl);
   }
-
-
-
-
-
-  console.log(repos);
-  console.log(searchTerm);
 };
+
+var getFeaturedRepos = function (language) {
+  var apiUrl = "https://api.github.com/search/repositories?q=" + language + "+is:featured&sort=help-wanted-issues";
+
+  fetch(apiUrl).then(function (response) {
+    if (response.ok) {
+      response.json().then(function(data) {
+        displayRepos(data.items, language);
+      });
+    } else {
+      alert('Error: GitHub User Not Found');
+    }
+  });
+};
+
+
+// add event listeners to forms
+userFormEl.addEventListener("submit", formSubmitHandler);
